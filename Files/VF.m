@@ -7,8 +7,9 @@ m = size(X, 1);
 soltemp = zeros(size(X));
 
 % Define base vector field in R^2
-soltemp(:,1) = -X(:,2);
-soltemp(:,2) =  X(:,1);
+soltemp(:,1) = ones(m,1);
+soltemp(:,2) =  ones(m,1);
+soltemp(:,3) =  ones(m,1);
 
 solfinal = {};
 

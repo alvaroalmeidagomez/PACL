@@ -15,24 +15,15 @@ function v_out = HeatEuler(v0, A, num_iters)
         v0 = v0(:);
     end
 
-    % 1. OPTIMIZED EIGENVALUE COMPUTATION
-    % The original 'eig(A)' computes ALL eigenvalues. For an N x N matrix, 
-    % this is an O(N^3) operation and will run out of memory for large meshes.
-    % We only need the largest eigenvalue, so we use 'eigs' which is much faster.
-    opts.disp = 0; % Suppress command window output from eigs
-    try
-        % 'lm' asks for the single Largest Magnitude eigenvalue
-        max_eig = eigs(A, 1, 'lm', opts); 
-    catch
-        % Fallback just in case the matrix is extremely small (e.g., < 6x6)
-        % where 'eigs' might fail to converge.
-        max_eig = max(eig(full(A)));
-    end
+
 
     % Calculate stable time step.
     % The absolute mathematical limit is 2/max_eig. We use 1.99 to give 
     % a tiny safety margin against floating-point precision drift.
-    dt = 1.9 / max_eig;
+    dt = 0.9 / norm(A);
+
+  
+
 
     % Initialize output vector
     v_out = v0;

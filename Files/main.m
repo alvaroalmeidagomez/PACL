@@ -18,7 +18,6 @@ end
 
 %% ===================== PARAMETER DEFINITION =====================
 d = 2;
-k = 1;
 t = 1 / (m^(2/(d+6)));
 
 %% ===================== GENERATE POINTS ON SPHERE =====================
@@ -33,10 +32,16 @@ X = X ./ vecnorm(X, 2, 2); % Normalize rows to lie on unit sphere
 Tang_M = tangvect(X);
 
 %% ===================== Matrix CL =====================
+% 1. Renamed 'tinv' to avoid shadowing MATLAB's built-in tinv() function 
 
-CL_matrix = CL_computation(X, d, Tang_M, t, k);
-CL_matrix = cell2mat(CL_matrix);
 
+% 3. Combined conversion, identity offset, and scaling into a clean workflow
+% Convert the cell array to a matrix
+raw_CL = cell2mat(CL_computation(X, d, Tang_M, t));
+
+% Subtract the scaled identity matrix
+% (The extra closing parenthesis at the end has been removed)
+Ldis_matrix =(2/(t^2))* (eye(d*m)-raw_CL);
 %% ===================== INITIAL VECTOR FIELD =====================
 vF_test = VF(X, Tang_M);
 
@@ -48,7 +53,7 @@ visualize_tangent_field(X, vF_test, Tang_M, 'Initial Field');
 % PARAMETERS
 % -------------------------------------------------------------------------
 NUM_STEPS       = 4;
-TIME_MULTIPLIER = 2;
+TIME_MULTIPLIER = 10;
 
 % -------------------------------------------------------------------------
 % COMPUTE HEAT SOLUTIONS
@@ -57,7 +62,7 @@ heat_sol = cell(1, NUM_STEPS);
 
 for i = 1:NUM_STEPS
     iteration = TIME_MULTIPLIER * i;
-    heat_sol{i} = HeatEuler(vF_test, CL_matrix, iteration);
+    heat_sol{i} = HeatEuler(vF_test, Ldis_matrix, iteration);
 end
 
 % -------------------------------------------------------------------------
@@ -90,10 +95,10 @@ heatMagnitudeError = zeros(1, NUM_STEPS);
 for k = 1:NUM_STEPS
 
     % Advance heat equation one Euler step
-    currentSolution = HeatEuler(vF_test, CL_matrix, k);
+    currentSolution = HeatEuler(vF_test, Ldis_matrix, k);
 
     % L2 magnitude error (normalized by mesh size)
-    heatMagnitudeError(k) = norm(currentSolution) / m_in;
+    heatMagnitudeError(k) = norm(currentSolution) / m;
 
 end
 
